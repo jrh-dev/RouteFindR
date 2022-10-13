@@ -1,3 +1,6 @@
+box::use(tdy = tidyr[pivot_wider])
+
+
 api_key <- readLines("~/.cache/api_keys/bing_maps.txt")
 
 ._drive_detail <- function(start, end, api_key) {
@@ -28,7 +31,7 @@ api_key <- readLines("~/.cache/api_keys/bing_maps.txt")
 
 ._to_matrix <- function(data, values_col) {
   
-  data <- tidyr::pivot_wider(data, names_from = end, values_from = values_col)
+  data <- tdy$pivot_wider(data, names_from = end, values_from = values_col)
   
   rn <- as.character(data$start)
   
