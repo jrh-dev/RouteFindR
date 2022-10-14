@@ -1,7 +1,7 @@
 options(box.path = getwd())
 box::use(R/routes)
 
-
+# requires Bing API key from https://www.microsoft.com/en-us/maps/choose-your-bing-maps-api
 
 # just trying things out
 api_key <- readLines("~/.cache/api_keys/bing_maps.txt")
