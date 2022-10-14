@@ -8,54 +8,64 @@ routes <- function(locations, api_key) {
   
   mat <- ._get_stages(locations, api_key)
   
-  map <- data.frame(x = mat$start, y = mat$end)
-  mapping <- TRUE
-  paths <- 0
-  moves <- map
-  
-  # Part 1 loop - find all paths visiting locations a maximum of 1 time
-  while (mapping) {
-    names(map) <- c(paste0("pos",1:(ncol(map) - 1)), "x")
+  if (length(locations) == 2) {
     
-    map <- left_join(map, moves, by = "x")
+    map <- mat[mat$start != mat$end,]
     
-    # Check location not visited twice
-    for (ii in seq_along(locations)) {
-      map <- map[rowSums(map == locations[ii], na.rm = T) < 2,]
+    names(map) <- c("pos1", "pos2", "dist", "dura")
+    
+  } else {
+    
+    map <- data.frame(x = mat$start, y = mat$end)
+    mapping <- TRUE
+    paths <- 0
+    moves <- map
+    
+    # Part 1 loop - find all paths visiting locations a maximum of 1 time
+    while (mapping) {
+      names(map) <- c(paste0("pos",1:(ncol(map) - 1)), "x")
+      
+      map <- left_join(map, moves, by = "x")
+      
+      # Check location not visited twice
+      for (ii in seq_along(locations)) {
+        map <- map[rowSums(map == locations[ii], na.rm = T) < 2,]
+      }
+      
+      # Stop when all paths resolve
+      if (ncol(map) == length(locations)) {
+        mapping <- FALSE
+      } 
     }
     
-    # Stop when all paths resolve
-    if (ncol(map) == length(locations)) {
-      mapping <- FALSE
-    } 
-  }
-  
-  names(map) <- c(paste0("pos",1:(ncol(map))))
-  
-  row.names(map) <- NULL
-  
-  dist <- vector(mode = "double", length = nrow(map))
-  dura <- vector(mode = "double", length = nrow(map))
-  
-  for (row in seq_len(nrow(map))) {
+    names(map) <- c(paste0("pos",1:(ncol(map))))
     
-    tmp <- as.character(unlist(map[row,]))
+    row.names(map) <- NULL
     
-    dist_sum <- 0
-    dura_sum <- 0
+    dist <- vector(mode = "double", length = nrow(map))
+    dura <- vector(mode = "double", length = nrow(map))
     
-    for (ii in seq_len(length(tmp) - 1)) {
-      dist_sum <- dist_sum + mat[mat$start == tmp[ii] & mat$end == tmp[ii + 1],]$dist
-      dura_sum <- dura_sum + mat[mat$start == tmp[ii] & mat$end == tmp[ii + 1],]$dur
+    for (row in seq_len(nrow(map))) {
+      
+      tmp <- as.character(unlist(map[row,]))
+      
+      dist_sum <- 0
+      dura_sum <- 0
+      
+      for (ii in seq_len(length(tmp) - 1)) {
+        dist_sum <- dist_sum + mat[mat$start == tmp[ii] & mat$end == tmp[ii + 1],]$dist
+        dura_sum <- dura_sum + mat[mat$start == tmp[ii] & mat$end == tmp[ii + 1],]$dur
+      }
+      
+      dist[row] <- dist_sum
+      dura[row] <- dura_sum
+      
     }
     
-    dist[row] <- dist_sum
-    dura[row] <- dura_sum
+    map$dist <- dist
+    map$dura <- dura
     
   }
-  
-  map$dist <- dist
-  map$dura <- dura
   
   return(map)
 }
